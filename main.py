@@ -51,3 +51,77 @@ class Inventory:
         else:
             print(f"Kunde '{kunde}' gibt's schon.")
 
+    def fuege_artikel_hinzu(self, kategorie, lagerort, name, menge, lieferant):
+        if kategorie not in self.inventar["kategorien"]:
+            print(f"Kategorie '{kategorie}' gibt's nicht.")
+            return
+        if lagerort not in self.inventar["lagerorte"]:
+            print(f"Lagerort '{lagerort}' gibt's nicht.")
+            return
+        if lieferant not in self.inventar["lieferanten"]:
+            print(f"Lieferant '{lieferant}' gibt's nicht.")
+            return
+
+        if lagerort not in self.inventar["kategorien"][kategorie]:
+            self.inventar["kategorien"][kategorie][lagerort] = {}
+
+        if name in self.inventar["kategorien"][kategorie][lagerort]:
+            self.inventar["kategorien"][kategorie][lagerort][name] += menge
+        else:
+            self.inventar["kategorien"][kategorie][lagerort][name] = menge
+
+        self.inventar["lieferanten"][lieferant].append(name)
+        print(f"{menge} {name}(s) hinzugefügt in {kategorie} bei {lagerort} von {lieferant}.")
+        self.speichere_inventar()
+
+    def entferne_artikel(self, kategorie, lagerort, name, menge):
+        if kategorie not in self.inventar["kategorien"]:
+            print(f"Kategorie '{kategorie}' gibt's nicht.")
+            return
+        if lagerort not in self.inventar["kategorien"][kategorie]:
+            print(f"Lagerort '{lagerort}' gibt's nicht.")
+            return
+
+        if name in self.inventar["kategorien"][kategorie][lagerort]:
+            if self.inventar["kategorien"][kategorie][lagerort][name] >= menge:
+                self.inventar["kategorien"][kategorie][lagerort][name] -= menge
+                if self.inventar["kategorien"][kategorie][lagerort][name] == 0:
+                    del self.inventar["kategorien"][kategorie][lagerort][name]
+                    if not self.inventar["kategorien"][kategorie][lagerort]:
+                        del self.inventar["kategorien"][kategorie][lagerort]
+                print(f"{menge} {name}(s) entfernt aus {kategorie} bei {lagerort}.")
+            else:
+                print(f"Nicht genug {name} in {kategorie} bei {lagerort}.")
+        else:
+            print(f"{name} nicht gefunden in {kategorie} bei {lagerort}.")
+        self.speichere_inventar()
+
+    def wareneingang(self, kategorie, lagerort, name, menge, lieferant):
+        self.fuege_artikel_hinzu(kategorie, lagerort, name, menge, lieferant)
+
+    def warenausgang(self, kategorie, lagerort, name, menge, kunde):
+        if kategorie not in self.inventar["kategorien"]:
+            print(f"Kategorie '{kategorie}' gibt's nicht.")
+            return
+        if lagerort not in self.inventar["kategorien"][kategorie]:
+            print(f"Lagerort '{lagerort}' gibt's nicht.")
+            return
+        if kunde not in self.inventar["kunden"]:
+            print(f"Kunde '{kunde}' gibt's nicht.")
+            return
+
+        if name in self.inventar["kategorien"][kategorie][lagerort]:
+            if self.inventar["kategorien"][kategorie][lagerort][name] >= menge:
+                self.inventar["kategorien"][kategorie][lagerort][name] -= menge
+                if self.inventar["kategorien"][kategorie][lagerort][name] == 0:
+                    del self.inventar["kategorien"][kategorie][lagerort][name]
+                    if not self.inventar["kategorien"][kategorie][lagerort]:
+                        del self.inventar["kategorien"][kategorie][lagerort]
+                self.inventar["kunden"][kunde].append(name)
+                print(f"{menge} {name}(s) an {kunde} ausgegeben aus {kategorie} bei {lagerort}.")
+            else:
+                print(f"Nicht genug {name} in {kategorie} bei {lagerort}.")
+        else:
+            print(f"{name} nicht gefunden in {kategorie} bei {lagerort}.")
+        self.speichere_inventar()
+
