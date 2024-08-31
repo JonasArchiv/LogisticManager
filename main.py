@@ -16,7 +16,8 @@ class Inventory:
                 "kategorien": {},
                 "lagerorte": {},
                 "lieferanten": {},
-                "kunden": {}
+                "kunden": {},
+                "auftraege": {}
             }
 
     def speichere_inventar(self):
@@ -145,9 +146,59 @@ class Inventory:
             print(f"  {kunde}: {', '.join(self.inventar['kunden'][kunde])}")
 
 
+class Auftragsverwaltung:
+    def __init__(self, inventar):
+        self.inventar = inventar
+
+    def erstelle_auftrag(self, auftragsnummer, kunde, artikel, menge):
+        if kunde not in self.inventar.inventar["kunden"]:
+            print(f"Kunde '{kunde}' gibt's nicht.")
+            return
+        if not self.pruefe_lagerbestand(artikel, menge):
+            print(f"Nicht genug {artikel} auf Lager.")
+            return
+
+        if auftragsnummer not in self.inventar.inventar["auftraege"]:
+            self.inventar.inventar["auftraege"][auftragsnummer] = {
+                "kunde": kunde,
+                "artikel": {},
+                "status": "Offen"
+            }
+
+        if artikel in self.inventar.inventar["auftraege"][auftragsnummer]["artikel"]:
+            self.inventar.inventar["auftraege"][auftragsnummer]["artikel"][artikel] += menge
+        else:
+            self.inventar.inventar["auftraege"][auftragsnummer]["artikel"][artikel] = menge
+
+        print(f"Auftrag {auftragsnummer} erstellt für {kunde} mit {menge} {artikel}.")
+        self.inventar.speichere_inventar()
+
+    def pruefe_lagerbestand(self, artikel, menge):
+        for kategorie in self.inventar.inventar["kategorien"].values():
+            for lagerort in kategorie.values():
+                if artikel in lagerort:
+                    if lagerort[artikel] >= menge:
+                        return True
+        return False
+
+    def liste_auftraege_auf(self):
+        if not self.inventar.inventar["auftraege"]:
+            print("Keine Aufträge vorhanden.")
+            return
+
+        print("Aufträge:")
+        for auftragsnummer, details in self.inventar.inventar["auftraege"].items():
+            print(f"Auftragsnummer: {auftragsnummer}")
+            print(f"  Kunde: {details['kunde']}")
+            print(f"  Status: {details['status']}")
+            print(f"  Artikel:")
+            for artikel, menge in details["artikel"].items():
+                print(f"    {artikel}: {menge}")
+
+
 def main():
-    dateiname = 'inventar.json'
-    inventar = Inventory(dateiname)
+    inventar = Inventory()
+    auftragsverwaltung = Auftragsverwaltung(inventar)
 
     while True:
         print("\nInventarverwaltungssystem")
@@ -158,42 +209,52 @@ def main():
         print("5. Artikel hinzufügen (Waren-Eingang)")
         print("6. Artikel entfernen (Waren-Ausgang)")
         print("7. Inventar auflisten")
-        print("8. Beenden")
-        wahl = input("Was möchten Sie tun? (1-8): ")
+        print("8. Auftrag erstellen")
+        print("9. Aufträge auflisten")
+        print("10. Beenden")
+        wahl = input("Wähle eine Option (1-10): ")
 
         if wahl == '1':
-            kategorie = input("Name der Kategorie: ")
+            kategorie = input("Kategorie: ")
             inventar.fuege_kategorie_hinzu(kategorie)
         elif wahl == '2':
-            lagerort = input("Name des Lagerorts: ")
+            lagerort = input("Lagerort: ")
             inventar.fuege_lagerort_hinzu(lagerort)
         elif wahl == '3':
-            lieferant = input("Name des Lieferanten: ")
+            lieferant = input("Lieferant: ")
             inventar.fuege_lieferant_hinzu(lieferant)
         elif wahl == '4':
-            kunde = input("Name des Kunden: ")
+            kunde = input("Kunde: ")
             inventar.fuege_kunde_hinzu(kunde)
         elif wahl == '5':
             kategorie = input("Kategorie: ")
             lagerort = input("Lagerort: ")
-            name = input("Artikelname: ")
+            name = input("Artikel: ")
             menge = int(input("Menge: "))
             lieferant = input("Lieferant: ")
             inventar.wareneingang(kategorie, lagerort, name, menge, lieferant)
         elif wahl == '6':
             kategorie = input("Kategorie: ")
             lagerort = input("Lagerort: ")
-            name = input("Artikelname: ")
+            name = input("Artikel: ")
             menge = int(input("Menge: "))
             kunde = input("Kunde: ")
             inventar.warenausgang(kategorie, lagerort, name, menge, kunde)
         elif wahl == '7':
             inventar.liste_inventar_auf()
         elif wahl == '8':
+            auftragsnummer = input("Auftragsnummer: ")
+            kunde = input("Kunde: ")
+            artikel = input("Artikel: ")
+            menge = int(input("Menge: "))
+            auftragsverwaltung.erstelle_auftrag(auftragsnummer, kunde, artikel, menge)
+        elif wahl == '9':
+            auftragsverwaltung.liste_auftraege_auf()
+        elif wahl == '10':
             print("Programm wird beendet...")
             break
         else:
-            print("Ungültige Wahl. Bitte eine Zahl zwischen 1 und 8 eingeben.")
+            print("Ungültige Wahl. Bitte eine Zahl zwischen 1 und 10 eingeben.")
 
 
 if __name__ == "__main__":
